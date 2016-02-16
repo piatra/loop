@@ -375,11 +375,11 @@ describe("loop.roomViews", function() {
             }));
         });
 
-      it("should dispatch a `StartBrowserShare` action when the SESSION_CONNECTED state is entered", function() {
-        activeRoomStore.setStoreState({ roomState: ROOM_STATES.READY });
+      it("should dispatch a `StartBrowserShare` action when state goes from MEDIA_WAIT to JOINING a room", function() {
+        activeRoomStore.setStoreState({ roomState: ROOM_STATES.MEDIA_WAIT });
         mountTestComponent();
 
-        activeRoomStore.setStoreState({ roomState: ROOM_STATES.SESSION_CONNECTED });
+        activeRoomStore.setStoreState({ roomState: ROOM_STATES.JOINING });
 
         sinon.assert.calledOnce(dispatcher.dispatch);
         sinon.assert.calledWithExactly(dispatcher.dispatch,

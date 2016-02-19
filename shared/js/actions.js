@@ -237,6 +237,12 @@ loop.shared.actions = (function() {
     }),
 
     /**
+     * Used to notify of room connection status.
+     */
+    RoomSessionConnected: Action.define("roomSessionConnected", {
+    }),
+
+    /**
      * Used to end a screen share.
      */
     EndScreenShare: Action.define("endScreenShare", {

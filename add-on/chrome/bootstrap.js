@@ -535,6 +535,7 @@ var WindowListener = {
           // metadata about the page is available when this event fires.
           gBrowser.addEventListener("DOMTitleChanged", this);
           this._browserSharePaused = false;
+          this._roomSessionConnected = false;
 
           // Add this event to the parent gBrowser to avoid adding and removing
           // it for each individual tab's browsers.
@@ -561,6 +562,14 @@ var WindowListener = {
       },
 
       /**
+       * Setting the value to `true` will allow the pause/resume button callback
+       * in the notification bar to change conversation state.
+       */
+      roomSessionConnected: function() {
+        this._roomSessionConnected = true;
+      },
+
+      /**
        * Stop listening to selected tab changes.
        */
       stopBrowserSharing: function() {
@@ -579,6 +588,7 @@ var WindowListener = {
 
         this._listeningToTabSelect = false;
         this._browserSharePaused = false;
+        this._roomSessionConnected = false;
         this._sendTelemetryEventsIfNeeded();
       },
 
@@ -724,22 +734,27 @@ var WindowListener = {
           accesskey: this._getString("infobar_button_stop_accesskey"),
           message: this._getString("infobar_screenshare_browser_message2")
         };
-        let initStrings =
-          this._browserSharePaused ? pausedStrings : unpausedStrings;
-
-        this._hideBrowserSharingInfoBar();
-        let box = gBrowser.getNotificationBox();
+        let initStrings = this._browserSharePaused ? pausedStrings : unpausedStrings;
+        // XXX This is work in progress.
+        let pendingBtnString = "Connecting...";
         let bar = box.appendNotification(
-          initStrings.message,            // label
-          kBrowserSharingNotificationId,  // value
-          // Icon defined in browser theme CSS.
-          null,                           // image
-          box.PRIORITY_WARNING_LOW,       // priority
-          [{                              // buttons (Pause, Stop)
-            label: initStrings.label,
+          initStrings.message,
+          kBrowserSharingNotificationId,
+          // Icon is defined in browser theme CSS.
+          null,
+          box.PRIORITY_WARNING_LOW,
+          [{
+            label: this._roomSessionConnected ? initStrings.label : pendingBtnString,
             accessKey: initStrings.accessKey,
             isDefault: false,
             callback: (event, buttonInfo, buttonNode) => {
+              // Prevent any action before connecting to a room.
+              if (!this._roomSessionConnected) {
+                // You must throw an error to prevent the notification bar
+                // from closing when the button is clicked.
+                throw new Error('Prevent notification bar close');
+              }
+
               this._browserSharePaused = !this._browserSharePaused;
               let stringObj = this._browserSharePaused ? pausedStrings : unpausedStrings;
               bar.label = stringObj.message;

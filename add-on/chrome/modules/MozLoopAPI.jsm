@@ -200,6 +200,16 @@ const kMessageHandlers = {
   },
 
   /**
+   * Triggered at ROOM_STATES.SESSION_CONNECTED meant to notify the connection
+   * status.
+   */
+  RoomSessionConnected: function(message, reply) {
+    let win = Services.wm.getMostRecentWindow("navigator:browser");
+    win.LoopUI.roomSessionConnected();
+    reply();
+  },
+
+  /**
    * Creates a layout for the remote cursor on the browser chrome,
    * and positions it on the received coordinates.
    *

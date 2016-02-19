@@ -195,6 +195,12 @@ loop.roomViews = (function(mozL10n) {
           nextState.roomState === ROOM_STATES.JOINING) {
         this.props.dispatcher.dispatch(new sharedActions.StartBrowserShare());
       }
+
+      // Notify of connection status update.
+      if (this.state.roomState !== ROOM_STATES.SESSION_CONNECTED &&
+          nextState.roomState === ROOM_STATES.SESSION_CONNECTED) {
+        this.props.dispatcher.dispatch(new sharedActions.RoomSessionConnected());
+      }
     },
 
     /**

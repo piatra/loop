@@ -269,6 +269,7 @@ loop.store.ActiveRoomStore = (function(mozL10n) {
         "remoteVideoStatus",
         "videoDimensionsChanged",
         "startBrowserShare",
+        "roomSessionConnected",
         "endScreenShare",
         "toggleBrowserSharing",
         "updateSocialShareInfo",
@@ -991,6 +992,10 @@ loop.store.ActiveRoomStore = (function(mozL10n) {
       loop.request("AddBrowserSharingListener", this.getStoreState().windowId)
         .then(this._browserSharingListener);
       loop.subscribe("BrowserSwitch", this._browserSharingListener);
+    },
+
+    roomSessionConnected: function() {
+      loop.request("RoomSessionConnected");
     },
 
     /**

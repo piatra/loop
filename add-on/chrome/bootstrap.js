@@ -543,7 +543,11 @@ var WindowListener = {
           gBrowser.addEventListener("click", this);
         }
 
-        this._maybeShowBrowserSharingInfoBar();
+        if (this._roomSessionConnected) {
+          this._maybeShowBrowserSharingInfoBar();
+        } else {
+          this._showBrowserLoadingInfoBar();
+        }
 
         // Get the first window Id for the listener.
         let browser = gBrowser.selectedBrowser;
@@ -567,6 +571,7 @@ var WindowListener = {
        */
       roomSessionConnected: function() {
         this._roomSessionConnected = true;
+        this._maybeShowBrowserSharingInfoBar();
       },
 
       /**
@@ -717,12 +722,25 @@ var WindowListener = {
         return str;
       },
 
+      _showBrowserLoadingInfoBar: function() {
+        let box = gBrowser.getNotificationBox();
+        let pendingBtnString = "Connecting...";
+        let bar = box.appendNotification(
+          pendingBtnString,
+          kBrowserSharingNotificationId,
+          // Icon is defined in browser theme CSS.
+          null,
+          box.PRIORITY_WARNING_LOW);
+      },
+
       /**
        * Shows an infobar notification at the top of the browser window that warns
        * the user that their browser tabs are being broadcasted through the current
        * conversation.
        */
       _maybeShowBrowserSharingInfoBar: function() {
+        // Hide connecting info bar
+        this._hideBrowserSharingInfoBar();
         // Pre-load strings
         let pausedStrings = {
           label: this._getString("infobar_button_restart_label2"),
@@ -736,7 +754,7 @@ var WindowListener = {
         };
         let initStrings = this._browserSharePaused ? pausedStrings : unpausedStrings;
         // XXX This is work in progress.
-        let pendingBtnString = "Connecting...";
+        let box = gBrowser.getNotificationBox();
         let bar = box.appendNotification(
           initStrings.message,
           kBrowserSharingNotificationId,
@@ -744,17 +762,10 @@ var WindowListener = {
           null,
           box.PRIORITY_WARNING_LOW,
           [{
-            label: this._roomSessionConnected ? initStrings.label : pendingBtnString,
+            label: initStrings.label,
             accessKey: initStrings.accessKey,
             isDefault: false,
             callback: (event, buttonInfo, buttonNode) => {
-              // Prevent any action before connecting to a room.
-              if (!this._roomSessionConnected) {
-                // You must throw an error to prevent the notification bar
-                // from closing when the button is clicked.
-                throw new Error('Prevent notification bar close');
-              }
-
               this._browserSharePaused = !this._browserSharePaused;
               let stringObj = this._browserSharePaused ? pausedStrings : unpausedStrings;
               bar.label = stringObj.message;
@@ -848,7 +859,11 @@ var WindowListener = {
             if (wasVisible) {
               // If the infobar was visible before, we should show it again after the
               // switch.
-              this._maybeShowBrowserSharingInfoBar();
+              if (this._roomSessionConnected) {
+                this._maybeShowBrowserSharingInfoBar();
+              } else {
+                this._showBrowserLoadingInfoBar();
+              }
             }
             break;
           case "mousemove":
